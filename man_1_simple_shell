@@ -1,102 +1,98 @@
-.\"Modified from man(1) of FreeBSD, the NetBSD mdoc.template, and mdoc.samples.
-.\"See Also:
-.\"man mdoc.samples for a complete listing of options
-.\"man mdoc for the short list of editing options
-.\"/usr/share/misc/mdoc.template
-.Dd 8/4/10               \" DATE
-.Dt simple_shell 1      \" Program name and manual section number
-.Os simple_shell manpage
-.Sh NAME                 \" Section Header - required - don't modify
-.Nm simple_shell
-.\" The following lines are read in generating the apropos(man -k) database. Use only key
-.Nd command interpreter (shell)
-.Sh SYNOPSIS             \" Section Header - required - don't modify
-.Nm
-.Op Fl a Ar path         \" [-a path]
-.Op Ar file              \" [arg]
-.Op Ar                   \" [arg ...]
-arg2 ...                 \" Arguments
-.Sh DESCRIPTION      \" Section Header - required - don't modify
-.Nm
-simple_shell is a simple implementation of the standard command interpreter for the system that receives comands from the standard input or a file. This version has many features that make it similar in some aspects to the standard shell, but it is
-a simple program to learn its operation. Only some standard shell features have been incorporated. This manual page is not intended to be a tutorial or a full specification of 
-.Nm 
-. .
-.Sh ARGUMENTS
-The first argument is assumed to be the name of a file containing 
-.Nm
-commands. The 
-.Nm
-reads and executes commands from this file, then exits. 
-.Nm
-'s exit status is the exit status of the last command executed in the script. If no commands are executed, the exit status is 0. An attempt is first made to open the file in the current directory, and, if no file is found, then the 
-.Nm 
-searches the directories in PATH for the script.
+B.\"Manpage for simple shell 
+.\"Created by Caleb Nyong and Matthew Lawrence
 
-.Sh BUILTING COMMANDS
-.Pp                      \" Inserts a space
-This is the list of builting commands with their descriptions:
-.Bl -tag -width -indent  \" Begins a tagged list
-.It Fl cd                 \"-a flag as a list item
-The cd command change the simple_shell working directory
-.El                      \" Ends the list
+.TH SODASH 1 "May 18 2022" "SODA SHELL - Simple Shell man page"
 
-.Sh COMPILATION
+.SH NAME
+sodash\fR \- simple UNIX command interpreter
 
-if the simple_shell still does not have an execution file, it is necessary to perform the compilation process from the .c files that host the source code, this process is recommended to do it with the GNU Compiler Collection and you must enter the following line:
-.P
-.RS
-.B $ gcc -Wall -Werror -Wextra -pedantic *.c -o simple_shell
-.P
-.RE
-after the compilation process, your simple_shell should work like this in interactive mode, typing the following line followed by an ENTER::
-.P
-.RS
-.B $ ./simple_shell
-.P
-.RE
-But also in non-interactive mode:
-.P
-.RS
-.B $ echo "/bin/ls" | ./simple_shell
+.SH SYNOPSIS
+soda\fR [\fIfilename\fR]
 
-.SH COMMANDS
-The following commands are valid:
+.SH COPYRIGHT
+soda is Copyright (C) 2022 by Caleb Nyong and Matthew Lawrence
 
-.IT
-.B pwd
-- prints the name of the current working directory
+.SH DESCRIPTION
+Soda\fR is a sh-compatible command language interpreter that executes commands read from the standard input or from a file.
 
-.B ls
-- list the contents of the directory
+.SH ARGUMENTS
+If arguments remain after option processing, the first argument is assumed to be the name of a file containing shell commands. Sodash reads and executes commands from this file, then exits. Sodash exit status is the exit status of the last command executed in the script. If no commands are executed, the exit status is 0. An attempt is first made to open the file in the current directory, and, if no file is found, then the shell searches the directories in PATH for the script.
 
-.B echo
-- shows a line of text
+.SH INVOCATION
+Sodash is started with the standard input connected to the terminal (as determined by \fIisatty(3)\fR), the interactive mode is executed. Also non-interactively option can be executed.
+When Sodash is executed interactively, the prompt is displayed  \fI^-^ \fR to read any command, the command line argument is invoked and is treated as the first argument.
+
+.SH DEFINITIONS
+The following definitions are used throughout the rest of this document.
+
+- \fIblank\fR
+
+A space or tab.
+
+- \fIword\fR
+
+A sequence of characters considered as a single unit by the shell. Also known as a token\fR.
+
+- \fIname\fR
+
+A word consisting only of alphanumeric characters and underscores, and beginning with an alphabetic character or an underscore. Also referred to as an identifier\fR.
+
+control operator\fR
+A token that performs a control function. It is one of the following symbols:
+|| & && ; ;;
+
+.SH Command Execution
+After a command has been split into words, if it results in a simple command and an optional list of arguments, the following actions are taken.
+
+If the command name contains no slashes, the shell attempts to locate it. If there exists a shell function by that name, that function is invoked. If the name does not match a function, the shell searches for it in the list of shell builtins. If a match is found, that builtin is invoked.
+
+If the name is neither a shell function nor a builtin, and contains no slashes, \fISodash\fR searches each element of the \fIPATH\fR for a directory containing an executable file by that name. \fISodash\fR uses a hash table to remember the full pathnames of executable files. A full search of the directories in \fIPATH\fR is performed only if the command is not found in the hash table. If the search is unsuccessful, the shell searches for a defined shell function named "command not found". If that function exists, it is invoked with the original command and the original command's arguments as its arguments, and the function's exit status becomes the exit status of the shell. If that function is not defined, the shell prints an error message and returns an exit status of 127.
+
+If the search is successful, or if the command name contains one or more slashes, the shell executes the named program in a separate execution environment. Argument 0 is set to the name given, and the remaining arguments to the command are set to the arguments given, if any.
+
+.SH Environment
+\fBSodash\fR takes a copy from \fBBash\fR environment of the parent process where it was executed. The environment is an array of strings containing the variables in the format.
+When a program is invoked it is given an array of strings called the environment. This is a list of name-value pairs, of the form name=value.
+
+The shell provides several ways to manipulate the environment. On invocation, the shell scans its own environment and creates a parameter for each name found, automatically marking it for export to child processes. Executed commands inherit the environment. The export and declare -x commands allow parameters and functions to be added to and deleted from the environment.
+
+.SH Exit Status
+Sodash\fR exit status of an executed command is the value returned by the waitpid system call or equivalent function. A command which exits with a zero exit status has succeeded. An exit status of zero indicates success. A non-zero exit status indicates failure.
+
+If a command is not found, the child process created to execute it returns a status of 127.
+
+All builtins return zero on success and one or two on incorrect usage (indicated by a corresponding error message).
+
+.SH BUILTINS
+The following builtin commands are supported:
 
 .B env
-- display the environment variables and their values
 
-Example of command:
-.IP
-.br
-.\&
-.RS
-\&$ pwd
-.br
-\&/home/my_directory
+- Print the current enviroment
 
-\&$ echo "Hello World!"
-.br
-\&Hello World!
+.B setenv [Variable] [Value]
 
+- Creates a new environment variab;e or modifies an existing one.
 
-.Sh SEE ALSO
-    man sh
+.B unsetenv [Variable]
 
-.Sh AUTHORS
-Nildiert Jimenez
+- Removes an environmental variable.
 
-Ricardo Gutierrez
-    
-.\" .Sh BUGS              \" Document known, unremedied bugs
-.\" .Sh HISTORY           \" Document history if command behaves in a unique manner
+.B exit [Status]
+
+- Exit the shell
+
+.B cd [Directory]
+
+- Changes the current directory of the process to DIRECTORY.  If no argument is given, the command is interpreted as cd $HOME. If the argument - is given, the command is interpreted as cd $OLDPWD. The environment variables PWD and OLDPWD are updated after a change of directory.
+
+.B help
+
+- Print help message of builtin command
+
+.SH SEE ALSO
+access(2), chdir(2), execve(2), _exit(2), exit(3), fflush(3), fork(2), free(3), isatty(3), getcwd(3), malloc(3), open(2), read(2), sh(1), signal(2), stat(2), wait(2), write(2)
+Sodash\fR takes basic functionality of the \fBsh\fR shell. This man page is based on the man page bash(1)
+
+.SH AUTHORS
+Jesse Allotei-Noah  & Derrick Azamalah
